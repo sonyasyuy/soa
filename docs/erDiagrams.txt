@@ -1,0 +1,150 @@
+###statistics_service:
+
+https://www.mermaidchart.com/play#pako:eNq9kcFuwyAMhl_F4t4X6G1qc0Bb16mh3SUSQuAhtAYiQ7pD2ncfWZQuzXIeByN-8-PPuGM6GGRrhrR1ypKqKw95leJJ8FLwDXSDAHA88i00ISbpDEDFDviBhF4jpABv-1JUbLzqfIKz-8Q4FS4Ovx4EHeoafYpSh9anMWNUwuRqhLPKpdqmP5sheRu2Ib7w50Ju9rtd8SpkccpxhoqX_HjPutjAg9hGpKl4Z9CEfXmp7ngxkfMWYmhJ4wLWiRfv_4_z41AW_TzhGqmMIYxxgfV3yNfrahW6pT9d50krawltrhzHEf9xTtqeO9jtG34xucw
+
+erDiagram
+    STATISTIC {
+      UUID post_id  "Reference to POST"
+      int likes
+      int views
+      int comments_count
+      datetime last_updated
+    }
+    
+    LIKE_COMMENT_EVENT {
+      UUID event_id 
+      UUID post_id 
+      UUID user_id 
+      datetime created_at
+      string source
+    }
+    
+    VIEW_EVENT {
+      UUID event_id 
+      UUID post_id 
+      UUID user_id 
+      datetime created_at
+      string user_agent
+      string ip_address
+    }
+    
+    STATISTIC ||--o{ LIKE_COMMENT_EVENT : "aggregates"
+    STATISTIC ||--o{ VIEW_EVENT : "aggregates"
+
+
+###post_service:
+
+https://www.mermaidchart.com/play#pako:eNrNkjFOAzEQRa8yspQyF0iH2BQUIQiSbqWVZY8iF_FG9izNJhKk5gycAQFBEcouVxjfCC8rSEIEKWhwYf_5_xdPtkuhco2iJ9AlRk6cnKYW4roYXo2gbDXAeHyWgNGwNxceXbZjenLGTkDlltDSN9eTpMJ_mloSkpkiKIdR6kzSQVTM9F60aI92Px0OBv3zY4Sz3FP2A_bv1H8GvOyfJFu6_8bY6QDf8zOvuQJ-4zrchiXwhmt-4VUj13GIItw1bhX9J66BX6PYNAlXYckP4Sb2Vvy482Pm8243L7-epwepcKjQXKNPxWHv45aaklRkcpsKsXgHShLh7Q
+
+
+erDiagram
+    POST {
+      UUID id 
+      UUID user_id 
+      string content
+      string status
+      datetime created_at
+      datetime updated_at
+    }
+    
+    COMMENT {
+      UUID id 
+      UUID post_id 
+      UUID user_id
+      string content
+      datetime created_at
+      datetime updated_at
+    }
+    
+    READ {
+            UUID id 
+      UUID post_id 
+      UUID user_id
+      string content
+      datetime created_at
+      datetime updated_at
+    }
+    %% Один пост может иметь много комментариев
+    POST ||--o{ COMMENT : "receives"
+    POST ||--o{ READ : "action"
+
+
+
+
+user_service:
+
+https://www.mermaidchart.com/play#pako:eNqtktFqwjAUhl8lBHbpC3itgjhQHN4VSmayGrCNJHG7sMLQXQp7gTHYGww3Udh0r3DyRjtpKc5Ox2DrRXPO_5-mX07OhPYVF7RKha5JFmkWBwnBp3dR75JJHmPWa9aI5KTTKhRjtUwiMjZCJywWJVnETA5L2ogZc6M0DwfMDAqPMyusjAXpa4EhD5n9Zo1H_JQ1ZMaGQxXJJLem-ZK_u-3z-i-OcASfC9PXcmSlSv4CekDjGxp2uu1G82eqTPFtDVEOaKNFrMo-DmiJ8kpqPP0R_KwrR3R2zSzT4ViXr-ZSqn8759kZgUd4hQ1sCXzADt7cAta4LuHZzWDlc4LuO4YrNyPoFMXuFnbuDhMs-TKFaVqppOlhA6vYGpyjoif7Xz_B0t3D2i2qBB5gi7u_4IarEyiwIQiCNW7uUTIqN_OAnmrr5sQz7XmykfI8apKzeQ6caxklguNFBZROPwHyKUEG
+
+erDiagram
+    USER {
+      UUID id PK
+      string username
+      string email
+      string password_hash
+      datetime created_at
+      datetime updated_at
+      datetime last_login
+    }
+    
+    ROLE {
+      UUID id PK
+      string name
+      string description
+      datetime created_at
+      datetime updated_at
+    }
+    
+    USER_PROFILE {
+      UUID id PK
+      UUID user_id "FK to USER"
+      string first_name
+      string last_name
+      string avatar_url
+      string bio
+      datetime created_at
+      datetime updated_at
+    }
+    
+    %% Один пользователь имеет один профиль
+    USER ||--|| USER_PROFILE : "has"
+    
+    %% Связь: Многие пользователи могут иметь одну роль
+    ROLE ||--o{ USER : "assigned to"
+
+
+
+api:
+
+https://www.mermaidchart.com/play#pako:eNp9UstuwyAQ_BXEPT-QW9RYlSX3bd8soa3ZJqvycGFdqXLy7yV1nLpOEy6wMzDMDvSy8RrlUmJYE2wC2NqJNFaPubop8uy-FP2ACFFV-VqQFmMdOZDbCAcWZxC0pN7xa4Y23jE0rNACmZF79d4gOJEI-jzpaGBksigCbigyBtQKuHYDvx-mX6fP2VOVvZSqeLi9bHei-dFhZHUoIoNtZz7R6daT4xlskbdej2Dik1BsvYuokgp3caTejIcJebjmku9Vmakiv8uvpPxTN4bQsaI_1xuyxKrFoCy5jnHKdTEldmw0niVgILWfDCKfUU3AtBzS_tfz8VfsdouF7-ddLEUttxBreXX_5LVOB-T-GyuFybc
+
+erDiagram
+    API_CLIENT {
+      UUID id 
+      string name
+      string api_key
+      string contact_email
+      boolean active
+      datetime registered_at
+
+    }
+    
+    API_REQUEST_LOG {
+      UUID id 
+      datetime request_timestamp
+      string endpoint
+      string method
+      int response_status
+      float response_time
+    }
+    
+    API_RATE_LIMIT {
+      UUID id 
+      UUID client_id
+      int limit_per_minute
+      int used_requests
+      datetime last_reset
+      datetime created_at
+    }
+    
+    API_CLIENT ||--o{ API_RATE_LIMIT : "has"
+    API_CLIENT ||--o{ API_REQUEST_LOG : "has"

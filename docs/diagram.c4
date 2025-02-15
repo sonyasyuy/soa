@@ -1,0 +1,133 @@
+specification {
+  element actor {
+    style {
+      shape person
+      color secondary
+    }
+  }
+  element ui
+  element api
+  element services
+  element component
+  element database {
+    style {
+      shape cylinder
+    }
+  }
+  element broker {
+    style {
+      shape queue
+    }
+  }
+
+  relationship http
+  relationship async
+}
+
+model {
+  // Внешний пользователь
+  user = actor "Пользователь" {
+    description "Пользователь социальной сети, работающий через UI"
+  }
+
+  // Пользовательский интерфейс (фронтенд)
+  userInterface = ui "Пользовательский интерфейс" {
+    description "Веб/мобильное приложение, через которое пользователь взаимодействует с системой соц.сети"
+  }
+
+  // API Gateway
+  apiGateway = api "API Gateway" {
+    description "Принимает все запросы от UI и маршрутизирует их к соответствующим сервисам"
+  }
+
+  // Общая 'коробка' со всеми внутренними сервисами
+  userServices = services "Различные сервисы" {
+    description "Внутренние микросервисы социальной сети"
+
+    // Сервис пользователей
+    auth = component "Users Service" {
+      description "Отвечает за регистрацию и аутентификацию пользователей, а также хранит всю информацию по ним и их роли"
+    }
+
+    // Сервис постов и комментариев
+    posts = component "Posts & Comments Service" {
+      description "Сервис для создания, чтения, обновления и удаления постов и комментариев"
+    }
+
+    // Сервис статистики
+    stats = component "Statistics Service" {
+      description "Сервис для подсчёта лайков, просмотров и комментариев"
+    }
+  }
+
+  // Базы данных
+  authDb = database "Users DB" {
+    description "PostgreSQL для хранения данных пользователей (логин, пароль, роль и т.п.)"
+  }
+
+  postsDb = database "Posts DB" {
+    description "PostgreSQL или Cassandra для хранения постов и комментариев"
+  }
+
+  statsDb = database "Stats DB" {
+    description "ClickHouse для хранения статистики (лайки, просмотры, кол-во комментариев)"
+  }
+
+  // Брокер сообщений
+  msgBroker = broker "Message Broker" {
+    description "RabbitMQ или Kafka для асинхронной передачи событий (лайки, просмотры, комментарии)"
+  }
+
+  // Связи (HTTP/REST)
+  user -> userInterface "Использует" 
+  userInterface .http apiGateway "Отправляет запросы (REST)" 
+
+  apiGateway .http auth "Регистрация/логин (REST)" 
+  auth .http authDb "Читает/записывает данные пользователей" 
+
+  apiGateway .http posts "CRUD постов и комментариев (REST)" 
+  posts .http postsDb "Читает/записывает посты и комментарии" 
+
+  apiGateway .http stats "Запрашивает статистику (REST)" 
+  stats .http statsDb "Читает/записывает статистику" 
+
+  // Асинхронные события (лайки, просмотры, новые комментарии)
+  posts .async msgBroker "Отправляет события" 
+  msgBroker .async stats "Передаёт события для подсчёта" 
+}
+
+views {
+  // Общая (Landscape) диаграмма, показывающая всё сразу
+  view index {
+    title "Общая C4-диаграмма социальной сети"
+    include *
+    autoLayout LeftRight
+  }
+
+  // Пример отдельного представления, фокусирующегося на внутренних сервисах
+  view of userServices {
+    title "Детализация микросервисов"
+    include userServices.*
+    include authDb
+    include postsDb
+    include statsDb
+    include msgBroker
+    autoLayout TopBottom
+  }
+  style user {
+    color muted
+    opacity 10%
+  }
+
+  // style userInterface {
+  //   color secondary
+  //   opacity 10%
+  // }
+
+  // style userServices {
+  //   color amber
+  //   // opacity 90%
+  // }
+
+
+}

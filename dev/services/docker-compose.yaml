@@ -1,0 +1,17 @@
+services:
+  main_service:
+    container_name: "main_service"
+    restart: unless-stopped
+    build:
+      context: ./../..
+      dockerfile: base_service/Dockerfile
+    ports:
+      - "5001:5000"
+    networks:
+      - socnet-network
+
+
+networks:
+  socnet-network:
+    name: "socnet-network"
+    external: true

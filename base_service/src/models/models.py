@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from datetime import datetime
 
 
 class NewUser(BaseModel):
@@ -41,50 +40,15 @@ class AuthUser(BaseModel):
 
 
 class UpdateUser(BaseModel):
-    token: str
-
     model_config = {
         "json_schema_extra": {
             "examples": [
                 {
-                    "token": "f34rgFN4J40okplLP0",
                     "name": "Ivan",
                     "surname": "Ivanov",
                     "email": "ivan@mail.ru",
                     "birth_date": "2005-12-31",
                     "phone_number": "79998887766"
-                },
-                {
-                    "token": "f34rgFN4J40okplLP0",
-                    "email": "ivan@mail.ru",
-                }
-            ]
-        }
-    }
-
-
-class ResponseRegister(BaseModel):
-    token: str
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "token": "f34rgFN4J40okplLP0",
-                }
-            ]
-        }
-    }
-
-
-class ResponseRegister(BaseModel):
-    token: str
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "token": "f34rgFN4J40okplLP0",
                 }
             ]
         }

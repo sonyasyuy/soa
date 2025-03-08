@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from .src.routing.routing import main_router
-from .src.config.config import *
+from .src.config.config import load_env
 
 
 import logging

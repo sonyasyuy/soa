@@ -11,36 +11,12 @@ services:
     networks:
       - socnet-network
     volumes:
-#      - ./configs:/docker-entrypoint-initdb.d:ro
       - ./configs/create-multiple-db-with-users.sh:/docker-entrypoint-initdb.d/create-multiple-db-with-users.sh:ro
     healthcheck:
       test: "pg_isready -U postgres"
       interval: 10s
       timeout: 5s
       retries: 5
-  pgadmin: # вебинтерфейс для постгрес
-    container_name: "socnet-pgadmin"
-    image: dpage/pgadmin4
-    restart: unless-stopped
-    entrypoint: >
-      /bin/sh -c "
-      cp -f /pgadmin4/pgpass /var/lib/pgadmin/;
-      chmod 600 /var/lib/pgadmin/pgpass;
-      /entrypoint.sh
-      "
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
-    ports:
-      - "8080:80"
-    networks:
-      - socnet-network
-    volumes:
-      - ./configs/servers.json:/pgadmin4/servers.json:ro
-      - ./configs/pgpass:/pgadmin4/pgpass:ro
-
 
 networks:
   socnet-network:

@@ -1,0 +1,7 @@
+grpcio>=1.71.0
+grpcio-tools
+protobuf
+asyncpg
+SQLAlchemy>=2.0
+alembic
+python-dotenv

@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from collections import defaultdict
-from base_service.src.usecase.usecase import add_new_user, check_auth_user, update_user
+from base_service.src.usecase.usecase import add_new_user, check_auth_user, update_user, add_token
+from base_service.src.usecase.password import gen_token
 from base_service.src.repo.repository import Repository
 from base_service.src.models.models import NewUser, AuthUser, UpdateUser
-from datetime import datetime, timedelta
 
 import json
+
 
 main_router = APIRouter()
 
@@ -26,7 +27,10 @@ async def register_new_user(request: Request, _: NewUser):
     if new_id <= 0:
         raise HTTPException(500, {"message": "error in create user"})
 
-    return JSONResponse(content={"message": "You've been successfully registered"}, status_code=200)
+    token = gen_token()
+    await add_token(new_id, token)
+
+    return JSONResponse(content={"token": token}, status_code=200)
 
 
 @main_router.post("/auth", status_code=201)
@@ -45,10 +49,16 @@ async def auth_user(request: Request, _: AuthUser):
     if not res:
         raise HTTPException(400, {"message": "wrong password, try again!"})
 
-    return JSONResponse(content={"message": "You've been successfully authorized"}, status_code=200)
+    token = gen_token()
+
+    get_id = await Repository().get_user_nick(data_input['nickname'])
+
+    await add_token(get_id, token)
+
+    return JSONResponse(content={"token": token}, status_code=200)
 
 
-
+# данный метод создан для тестирования правильности работы системы
 @main_router.get('/get', status_code=200)
 async def get_users():
     values = await Repository().get_users()
@@ -64,8 +74,6 @@ async def update_data_user(request: Request, _: UpdateUser):
     try:
         await update_user(data_input)
     except ValueError as e:
-        return JSONResponse(content={"message": str(e)})
+        raise HTTPException(401, {"message": str(e)})
 
     return JSONResponse(content={"message": "data succesfully updated"}, status_code=200)
-
-

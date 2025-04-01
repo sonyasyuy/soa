@@ -1,6 +1,5 @@
 from base_service.src.repo.repository import *
 from collections import defaultdict
-from datetime import timedelta, time
 
 import datetime, time
 
@@ -40,54 +39,50 @@ async def add_new_user(data: dict) -> int:
 
 async def check_auth_user(login: str, password: str) -> bool:
     if not await check_user(login):
-        raise ValueError("this user doesn't exist")
-    # Получаем хэшированный пароль из базы данных
+        raise ValueError("this user doesn't exists")
     hash_p = await Repository().ret_auth_data(login)
-    if hash_p[0]['password'] == password:
-        # Обновляем updated_at в таблице users для данного пользователя
-        await Repository().update_last_login(login)
-        return True
-    else:
-        return False
+    bytes_hash = bytes(hash_p[0]['password'], encoding='utf-8')
+    return hash_p[0]['password'] == password
 
 
 async def check_user(nick: str):
     return await Repository().check_user(nick)
 
 
-async def update_user(data: dict):
-    # Обязательно должен быть nickname для идентификации пользователя
-    nickname = data.get("nickname")
-    if not nickname:
-        raise ValueError("Nickname is required for update")
+async def change_data_user(new_data: dict):
+    pass
 
-    # Удаляем nickname, чтобы не пытаться его обновить
-    data.pop("nickname", None)
 
-    repo = Repository()
-    user = await repo.get_user_by_nickname(nickname)
-    if not user:
-        raise ValueError("User not found")
+async def add_token(user_id: int, token: str):
+    time_for_end = datetime.datetime.now() + datetime.timedelta(seconds=180)
+    await Repository().new_token(token, user_id, time_for_end)
 
-    if datetime.datetime.utcnow() - user["updated_at"] > timedelta(hours=1):
-        raise ValueError("Session expired, please reauthenticate")
 
-    # Разрешённые поля для обновления
-    allowed_fields = ["email", "phone_number", "name", "surname", "birth_date"]
-    fields_for_update = {}
-    for field, value in data.items():
-        if field in allowed_fields:
-            fields_for_update[field] = value
-        elif field in ["password"]:
-            raise ValueError(f"Field '{field}' is not allowed for updating")
+async def add_without_token(nickname: str, token: str):
+    user_id = await Repository().get_user(nickname)
+    time_for_end = datetime.datetime.now() + datetime.timedelta(seconds=40)
+    await Repository().new_token(token, user_id, time_for_end)
 
-    # Если передана birth_date, преобразуем строку в объект date
-    if "birth_date" in fields_for_update:
-        try:
-            fields_for_update["birth_date"] = datetime.datetime.strptime(
-                fields_for_update["birth_date"], "%Y-%m-%d"
-            ).date()
-        except ValueError:
-            raise ValueError("Wrong birth date format. Use YYYY-MM-DD")
 
-    await repo.update_user_by_nickname(nickname, fields_for_update)
+async def update_user(data: defaultdict):
+    if "token" not in data:
+        raise ValueError("you haven't got access for editing data")
+
+    fields_for_update = dict()
+    for i, v in data.items():
+        if i in ["email", "phone_number", "name", "surname", "birth_date", "name"]:
+            fields_for_update[i] = v
+        if i in ["nickname", "password"]:
+            raise ValueError("such fields are unavailable for updating")
+
+    if 'birth_date' in data and not await preprocess_date(data['birth_date']):
+        raise ValueError("wrong birth date!")
+
+    id_user = await Repository().get_user_token(data["token"])
+
+    if id_user <= 0:
+        raise ValueError("such token doesn't exists")
+
+    if not await Repository().check_current_token(data["token"], id_user):
+        raise ValueError("life-time of token ended, try auth again!")
+    await Repository().update_user(id_user, data)

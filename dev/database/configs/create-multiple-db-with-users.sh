@@ -30,9 +30,18 @@ function create_tables_in_main() { #user_service
             updated_at TIMESTAMP DEFAULT NOW()
         );
 
+        CREATE TABLE tokens (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id),
+            token VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            end_time TIMESTAMP
+        );
+
         -- Назначение прав пользователю
         GRANT ALL PRIVILEGES ON TABLE users TO $database;
         GRANT USAGE, SELECT ON SEQUENCE users_id_seq TO $database;
+        GRANT ALL PRIVILEGES ON TABLE tokens TO $database;
 EOSQL
 }
 
@@ -42,7 +51,7 @@ function create_tables_in_posts() { #posts_service
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$database" <<-EOSQL
         CREATE TABLE posts (
             id SERIAL PRIMARY KEY,
-            user_id INT REFERENCES users(id),
+            user_id INT,
             content TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -50,7 +59,7 @@ function create_tables_in_posts() { #posts_service
         CREATE TABLE comments (
             id SERIAL PRIMARY KEY,
             post_id INT REFERENCES posts(id),
-            user_id INT REFERENCES users(id),
+            user_id INT,
             content TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -58,7 +67,7 @@ function create_tables_in_posts() { #posts_service
         CREATE TABLE likes (
             id SERIAL PRIMARY KEY,
             post_id INT REFERENCES posts(id),
-            user_id INT REFERENCES users(id),
+            user_id INT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 

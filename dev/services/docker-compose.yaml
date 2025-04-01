@@ -12,6 +12,21 @@ services:
     networks:
       - socnet-network
 
+  grpc_service:
+    container_name: "grpc_service"
+    build:
+      context: ./../../grpc_service
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./../../grpc_service/src/config/.env:/app/src/config/.env:ro
+    networks:
+      - socnet-network
+#    depends_on:
+#      - postgresql
+
+
 
 networks:
   socnet-network:

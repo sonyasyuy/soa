@@ -51,9 +51,13 @@ function create_tables_in_posts() { #posts_service
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$database" <<-EOSQL
         CREATE TABLE posts (
             id SERIAL PRIMARY KEY,
-            user_id INT,
-            content TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            title VARCHAR NOT NULL,
+            description VARCHAR NOT NULL,
+            creator_id INT NOT NULL,
+            private BOOLEAN DEFAULT FALSE,
+            tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE comments (

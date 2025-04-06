@@ -5,3 +5,4 @@ asyncpg
 SQLAlchemy>=2.0
 alembic
 python-dotenv
+grpcio-reflection

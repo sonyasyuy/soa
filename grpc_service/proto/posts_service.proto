@@ -49,6 +49,7 @@ message DeletePostResponse {
 
 message GetPostRequest {
   int32 post_id = 1;
+  int32 creator_id = 2; // ← тоже можно добавить при необходимости проверки прав
 }
 
 message GetPostResponse {
@@ -58,6 +59,7 @@ message GetPostResponse {
 message ListPostsRequest {
   int32 page = 1;
   int32 count = 2;
+  int32 creator_id = 3;
 }
 
 message ListPostsResponse {

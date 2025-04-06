@@ -1,7 +1,7 @@
 from datetime import datetime
 import posts_service_pb2 as pb2
 from sqlalchemy import Column, Integer, String, Boolean, Text, TIMESTAMP, ARRAY
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 class PostDB(Base):
@@ -15,6 +15,19 @@ class PostDB(Base):
     tags = Column(ARRAY(String))
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_proto(self):
+        from posts_service_pb2 import Post  # импорт внутри функции, чтобы избежать циклов
+        return Post(
+            id=self.id,
+            title=self.title,
+            description=self.description,
+            creator_id=self.creator_id,
+            private=self.private,
+            tags=self.tags,
+            created_at=self.created_at.isoformat(),
+            updated_at=self.updated_at.isoformat()
+        )
 
 
 class PostModel:

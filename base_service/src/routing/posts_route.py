@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from fastapi import APIRouter, Request, Response, HTTPException
 from fastapi.responses import JSONResponse
 from src.usecase.usecase import *
@@ -9,6 +11,7 @@ import grpc
 from src.proto import posts_service_pb2
 from src.usecase.grpc import grpc_connect
 
+import datetime
 import json
 
 post_router = APIRouter()
@@ -23,11 +26,13 @@ async def create_post(request: Request):
         return JSONResponse(content={"message": "invalid input data"}, status_code=400)
 
     # вынести в usecase
+
+    # извлекаем user_id по токену
     get_id = await Repository.get_user_token(input_data['token'])
 
     if get_id <= 0:
         return JSONResponse(content={"message": "invalid token, try again"}, status_code=400)
-
+    # проверяем что ткоен еще активен
     check_token = await Repository.check_current_token(input_data['token'], get_id)
 
     if not check_token:
@@ -35,6 +40,8 @@ async def create_post(request: Request):
 
     try:
         client = await grpc_connect()
+
+        # передаем user_id в grpc
         response = client.CreatePost(
             posts_service_pb2.CreatePostRequest(Title=input_data['title'],
                                                 Text_description=input_data['text_description'],
